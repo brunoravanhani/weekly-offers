@@ -1,0 +1,143 @@
+:root {
+  --bg-top: #fff3e8;
+  --bg-bottom: #fcead2;
+  --ink: #25160a;
+  --muted: #795843;
+  --accent: #d45500;
+  --card: #fff9f0;
+  --line: #e8c9ab;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  color: var(--ink);
+  background: radial-gradient(circle at 10% 10%, #fffef7 0, var(--bg-top) 45%, var(--bg-bottom) 100%);
+}
+
+.page {
+  width: min(1100px, 94vw);
+  margin: 2rem auto 3rem;
+}
+
+.hero {
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 1.5rem;
+  background: linear-gradient(145deg, #fff9ef, #ffe9cc);
+  box-shadow: 0 12px 40px rgba(80, 41, 4, 0.1);
+}
+
+.eyebrow {
+  margin: 0;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.hero h1 {
+  margin: 0.5rem 0;
+  font-size: clamp(1.6rem, 2.3vw, 2.4rem);
+}
+
+.hero p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.toolbar {
+  margin-top: 1.5rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.toolbar label {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.toolbar select {
+  max-width: 500px;
+  padding: 0.65rem;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #fffdf8;
+}
+
+.grid {
+  margin-top: 1.2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 1rem;
+  background: var(--card);
+  box-shadow: 0 8px 25px rgba(70, 38, 4, 0.08);
+}
+
+.card h2 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.shop {
+  margin: 0.5rem 0;
+  color: var(--muted);
+}
+
+.price {
+  margin: 0.2rem 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.meta {
+  margin: 0.2rem 0;
+  font-size: 0.9rem;
+}
+
+.links {
+  margin-top: 0.8rem;
+  display: flex;
+  gap: 0.7rem;
+}
+
+.links a {
+  text-decoration: none;
+  color: #fff;
+  background: linear-gradient(90deg, #b64000, #df5d00);
+  border-radius: 999px;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.86rem;
+}
+
+.status {
+  margin-top: 1.5rem;
+  color: var(--muted);
+}
+
+.status.error {
+  color: #b42318;
+}
+
+@media (max-width: 680px) {
+  .page {
+    margin-top: 1rem;
+  }
+
+  .hero {
+    border-radius: 16px;
+  }
+}
