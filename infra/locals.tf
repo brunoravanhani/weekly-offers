@@ -7,5 +7,5 @@ locals {
   csv_input_bucket    = "${local.base_name}-csv-input"
   processed_bucket    = "${local.base_name}-processed"
   catalog_site_bucket = "${local.base_name}-site"
-  enable_custom_domain = trim(var.custom_domain_name) != "" && trim(var.route53_zone_id) != ""
+  enable_custom_domain = trimspace(var.custom_domain_name) != "" && trimspace(var.route53_zone_id) != ""
 }

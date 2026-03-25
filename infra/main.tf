@@ -224,7 +224,7 @@ resource "aws_lambda_function_url" "presign_upload" {
 
   cors {
     allow_credentials = false
-    allow_methods     = ["GET", "OPTIONS"]
+    allow_methods     = ["GET"]
     allow_origins     = ["*"]
     allow_headers     = ["content-type"]
     max_age           = 86400
