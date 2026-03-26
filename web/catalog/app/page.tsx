@@ -56,7 +56,7 @@ export default function Home() {
         setLoading(true);
         setError("");
 
-        const catalogUrl = process.env.NEXT_PUBLIC_CATALOG_INDEX_URL || `${process.env.NEXT_PUBLIC_PROCESSED_BUCKET_URL}/data/catalog/index.json`;
+        const catalogUrl = `${process.env.NEXT_PUBLIC_PROCESSED_BUCKET_URL}/data/processed/example.json`;
         const response = await fetch(catalogUrl, { cache: "no-store" });
         if (!response.ok) {
           throw new Error(`Could not load catalog index: ${response.status}`);
@@ -78,30 +78,30 @@ export default function Home() {
     loadCatalog();
   }, []);
 
-  useEffect(() => {
-    async function loadOffersFile() {
-      if (!selectedJsonKey) {
-        setOffersFile(null);
-        return;
-      }
+  // useEffect(() => {
+  //   async function loadOffersFile() {
+  //     if (!selectedJsonKey) {
+  //       setOffersFile(null);
+  //       return;
+  //     }
 
-      try {
-        const bucketUrl = process.env.NEXT_PUBLIC_PROCESSED_BUCKET_URL || "";
-        const offersUrl = bucketUrl ? `${bucketUrl}/${selectedJsonKey}` : `/${selectedJsonKey}`;
-        const response = await fetch(offersUrl, { cache: "no-store" });
-        if (!response.ok) {
-          throw new Error(`Could not load offers file: ${response.status}`);
-        }
+  //     try {
+  //       const bucketUrl = process.env.NEXT_PUBLIC_PROCESSED_BUCKET_URL || "";
+  //       const offersUrl = bucketUrl ? `${bucketUrl}/${selectedJsonKey}` : `/${selectedJsonKey}`;
+  //       const response = await fetch(offersUrl, { cache: "no-store" });
+  //       if (!response.ok) {
+  //         throw new Error(`Could not load offers file: ${response.status}`);
+  //       }
 
-        const parsed: OffersFile = await response.json();
-        setOffersFile(parsed);
-      } catch (loadError) {
-        setError(loadError instanceof Error ? loadError.message : "Unknown error");
-      }
-    }
+  //       const parsed: OffersFile = await response.json();
+  //       setOffersFile(parsed);
+  //     } catch (loadError) {
+  //       setError(loadError instanceof Error ? loadError.message : "Unknown error");
+  //     }
+  //   }
 
-    loadOffersFile();
-  }, [selectedJsonKey]);
+  //   loadOffersFile();
+  // }, [selectedJsonKey]);
 
   const sortedItems = useMemo(() => {
     if (!offersFile) return [];
