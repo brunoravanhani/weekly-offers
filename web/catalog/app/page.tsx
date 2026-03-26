@@ -56,7 +56,8 @@ export default function Home() {
         setLoading(true);
         setError("");
 
-        const response = await fetch("/data/catalog/index.json", { cache: "no-store" });
+        const catalogUrl = process.env.NEXT_PUBLIC_CATALOG_INDEX_URL || `${process.env.NEXT_PUBLIC_PROCESSED_BUCKET_URL}/data/catalog/index.json`;
+        const response = await fetch(catalogUrl, { cache: "no-store" });
         if (!response.ok) {
           throw new Error(`Could not load catalog index: ${response.status}`);
         }
@@ -85,7 +86,9 @@ export default function Home() {
       }
 
       try {
-        const response = await fetch(`/${selectedJsonKey}`, { cache: "no-store" });
+        const bucketUrl = process.env.NEXT_PUBLIC_PROCESSED_BUCKET_URL || "";
+        const offersUrl = bucketUrl ? `${bucketUrl}/${selectedJsonKey}` : `/${selectedJsonKey}`;
+        const response = await fetch(offersUrl, { cache: "no-store" });
         if (!response.ok) {
           throw new Error(`Could not load offers file: ${response.status}`);
         }
