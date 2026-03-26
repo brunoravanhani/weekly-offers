@@ -15,7 +15,7 @@ This workspace includes:
   - Node CLI to send CSV files to S3
   - Presigned URL API so clients can upload without AWS credentials
 - Next.js static catalog app that reads processed JSON from CloudFront.
-- GitHub Actions workflows for Terraform apply and web deployment.
+- GitHub Actions workflows for Terraform apply, Terraform destroy, and web deployment.
 
 ## 1) Deploy Infrastructure
 
@@ -42,6 +42,8 @@ terraform plan -out tfplan
 terraform apply tfplan
 ```
 
+For GitHub Actions apply and destroy to work reliably, configure a remote Terraform state bucket first. The workflows use an S3 backend and expect the repository secret `TF_STATE_BUCKET` to point to an existing bucket dedicated to Terraform state.
+
 After apply, capture outputs:
 
 ```bash
@@ -55,6 +57,40 @@ You will need:
 - `catalog_cloudfront_domain`
 - `catalog_base_url`
 - `presign_upload_api_url`
+
+To tear everything down later locally:
+
+```bash
+cd tools
+npm install
+npm run terraform:destroy
+```
+
+If the S3 buckets still contain objects, use the force variant:
+
+```bash
+cd tools
+npm run terraform:destroy:force
+```
+
+You can also pass Terraform flags through the helper directly, for example:
+
+```bash
+cd tools
+node terraform-destroy.mjs --force-buckets --var-file ../infra/terraform.tfvars
+```
+
+If you want GitHub Actions to manage the same infrastructure, migrate any existing local state before relying on the workflows:
+
+```bash
+cd infra
+terraform init -migrate-state \
+  -backend-config="bucket=<tf_state_bucket>" \
+  -backend-config="key=weekly-offers/dev/terraform.tfstate" \
+  -backend-config="region=<aws_region>" \
+  -backend-config="encrypt=true" \
+  -backend-config="use_lockfile=true"
+```
 
 ## 2) Upload CSV (Alternative Paths)
 
@@ -144,6 +180,7 @@ through the same CloudFront distribution.
 Workflows:
 
 - `.github/workflows/terraform-apply.yml`
+- `.github/workflows/terraform-destroy.yml`
 - `.github/workflows/web-deploy.yml`
 
 Repository variables:
@@ -153,12 +190,16 @@ Repository variables:
 Repository secrets:
 
 - `AWS_ROLE_TO_ASSUME`
+- `TF_STATE_BUCKET`
 - `CATALOG_SITE_BUCKET_NAME`
 - `CLOUDFRONT_DISTRIBUTION_ID`
 
-`AWS_ROLE_TO_ASSUME` should be an IAM role configured for GitHub OIDC with permissions for Terraform resources, S3 sync, and CloudFront invalidation.
+`AWS_ROLE_TO_ASSUME` should be an IAM role configured for GitHub OIDC with permissions for Terraform resources, the Terraform state bucket, S3 sync, and CloudFront invalidation.
+
+`terraform-destroy.yml` is manual-only and requires `confirm_destroy=DESTROY`. Set `force_destroy_buckets=true` when the CSV, processed-data, or site buckets still contain objects.
 
 ## Notes
 
 - This setup uses IAM credentials from your local AWS CLI profile for Terraform, upload script, and deploy sync.
+- GitHub Actions Terraform apply and destroy rely on the S3 backend declared in `infra/backend.tf` and configured at runtime from repository settings.
 - `.gitignore` is included for Terraform state, Node modules, Next.js build output, and local artifacts.

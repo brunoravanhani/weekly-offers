@@ -36,9 +36,37 @@ route53_zone_id    = "Z1234567890ABC"
 Add these repository secrets:
 
 - `AWS_ROLE_TO_ASSUME`
+- `TF_STATE_BUCKET`
 - `CATALOG_SITE_BUCKET_NAME`
 - `CLOUDFRONT_DISTRIBUTION_ID`
 
 Add this repository variable:
 
 - `AWS_REGION`
+
+`TF_STATE_BUCKET` must already exist and be writable by the GitHub OIDC role. The Terraform workflows store state at `weekly-offers/<environment>/terraform.tfstate` inside that bucket.
+
+## 4) Destroy infrastructure locally
+
+From `tools`, run:
+
+```bash
+npm install
+npm run terraform:destroy
+```
+
+If Terraform reports that S3 buckets are not empty, rerun with:
+
+```bash
+npm run terraform:destroy:force
+```
+
+## 5) Destroy infrastructure in GitHub Actions
+
+Run `.github/workflows/terraform-destroy.yml` with:
+
+- `environment`: usually `dev`
+- `force_destroy_buckets`: `true` if the S3 buckets are not empty
+- `confirm_destroy`: `DESTROY`
+
+If the stack was originally created with local state, migrate that state to the S3 backend first or the workflow will not know what to destroy.

@@ -1,4 +1,4 @@
-name: Terraform Apply
+name: Terraform Destroy
 
 on:
   workflow_dispatch:
@@ -7,19 +7,22 @@ on:
         description: Terraform environment/state key suffix
         required: true
         default: dev
-  push:
-    branches:
-      - main
-    paths:
-      - "infra/**"
-      - "lambda/**"
+      force_destroy_buckets:
+        description: Empty and destroy S3 buckets even when they still contain objects
+        required: true
+        type: boolean
+        default: false
+      confirm_destroy:
+        description: Type DESTROY to continue
+        required: true
 
 permissions:
   id-token: write
   contents: read
 
 jobs:
-  terraform:
+  terraform-destroy:
+    if: ${{ github.event.inputs.confirm_destroy == 'DESTROY' }}
     runs-on: ubuntu-latest
 
     defaults:
@@ -29,8 +32,9 @@ jobs:
     env:
       AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
       TF_STATE_BUCKET: ${{ secrets.TF_STATE_BUCKET }}
-      TF_STATE_KEY: weekly-offers/${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'dev' }}/terraform.tfstate
-      TF_ENVIRONMENT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'dev' }}
+      TF_STATE_KEY: weekly-offers/${{ github.event.inputs.environment }}/terraform.tfstate
+      TF_ENVIRONMENT: ${{ github.event.inputs.environment }}
+      TF_FORCE_DESTROY_BUCKETS: ${{ github.event.inputs.force_destroy_buckets }}
 
     steps:
       - name: Checkout
@@ -67,10 +71,20 @@ jobs:
             -backend-config="encrypt=true" \
             -backend-config="use_lockfile=true"
 
-      - name: Terraform Plan
+      - name: Terraform Destroy
         working-directory: infra
-        run: terraform plan -var="environment=${TF_ENVIRONMENT}" -out tfplan
+        run: |
+          terraform destroy -auto-approve \
+            -var="environment=${TF_ENVIRONMENT}" \
+            -var="csv_bucket_force_destroy=${TF_FORCE_DESTROY_BUCKETS}" \
+            -var="site_bucket_force_destroy=${TF_FORCE_DESTROY_BUCKETS}"
 
-      - name: Terraform Apply
-        working-directory: infra
-        run: terraform apply -auto-approve tfplan
+  destroy-not-confirmed:
+    if: ${{ github.event.inputs.confirm_destroy != 'DESTROY' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Confirmation missing
+        run: |
+          echo "Refusing to destroy infrastructure. Re-run the workflow and set confirm_destroy to DESTROY."
+          exit 1
