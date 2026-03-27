@@ -237,7 +237,6 @@ async function rebuildCatalogIndex(bucket) {
     cutoffAt: cutoffDate.toISOString(),
     fileCount: processedFiles.length,
     itemCount: catalogItems.length,
-    files: processedFiles,
     items: catalogItems
   };
 
