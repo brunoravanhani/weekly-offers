@@ -1,11 +1,13 @@
 :root {
-  --bg-top: #fff3e8;
-  --bg-bottom: #fcead2;
-  --ink: #25160a;
-  --muted: #795843;
-  --accent: #d45500;
-  --card: #fff9f0;
-  --line: #e8c9ab;
+  --bg: #efefef;
+  --surface: #ffffff;
+  --surface-soft: #f8f8f8;
+  --ink: #445063;
+  --muted: #808a97;
+  --line: #e1e4e8;
+  --accent: #f23770;
+  --cta: #66a847;
+  --dot: #b4d750;
 }
 
 * {
@@ -15,116 +17,210 @@
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  font-family: "Segoe UI", "Trebuchet MS", sans-serif;
   color: var(--ink);
-  background: radial-gradient(circle at 10% 10%, #fffef7 0, var(--bg-top) 45%, var(--bg-bottom) 100%);
+  background: linear-gradient(180deg, #f7f7f7 0, var(--bg) 220px, var(--bg) 100%);
 }
 
 .page {
-  width: min(1100px, 94vw);
-  margin: 2rem auto 3rem;
+  width: 100%;
+  margin: 0 0 3rem;
 }
 
-.hero {
-  border: 1px solid var(--line);
-  border-radius: 24px;
-  padding: 1.5rem;
-  background: linear-gradient(145deg, #fff9ef, #ffe9cc);
-  box-shadow: 0 12px 40px rgba(80, 41, 4, 0.1);
+.shell-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
 }
 
-.eyebrow {
+.content {
+  width: min(1120px, 94vw);
+  margin: 0 auto;
+}
+
+.brand-row {
+  width: min(1120px, 94vw);
+  margin: 0 auto;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+}
+
+.brand {
   margin: 0;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--accent);
+  font-size: clamp(2rem, 4.1vw, 2.95rem);
+  font-weight: 300;
+  letter-spacing: 0.01em;
+  padding: 0.6rem 0;
+}
+
+.header-actions {
+  display: flex;
+  border-left: 1px solid var(--line);
+}
+
+.icon-btn {
+  width: 66px;
+  display: grid;
+  place-items: center;
+  color: #b7bdc3;
+  font-size: 1.75rem;
+  border-right: 1px solid var(--line);
+}
+
+.tabs {
+  width: min(1120px, 94vw);
+  margin: 0 auto;
+  display: flex;
+  gap: 1.75rem;
+  padding: 0.85rem 0;
+}
+
+.tab {
+  text-decoration: none;
+  color: #556274;
+  font-size: 1.15rem;
+}
+
+.tab.active {
+  color: #121a27;
   font-weight: 700;
 }
 
-.hero h1 {
-  margin: 0.5rem 0;
-  font-size: clamp(1.6rem, 2.3vw, 2.4rem);
+.badge {
+  background: #ef4b5c;
+  color: #fff;
+  border-radius: 999px;
+  padding: 0.08rem 0.38rem;
+  font-size: 0.72rem;
+  vertical-align: middle;
 }
 
-.hero p {
-  margin: 0;
-  color: var(--muted);
-}
-
-.toolbar {
-  margin-top: 1.5rem;
+.search-row {
+  width: 100%;
+  margin: 1.55rem auto 1.2rem;
   display: grid;
-  gap: 0.45rem;
+  grid-template-columns: 1fr 170px;
+  gap: 0.8rem;
 }
 
-.toolbar label {
-  color: var(--muted);
-  font-weight: 700;
-}
-
-.toolbar select {
-  max-width: 500px;
-  padding: 0.65rem;
-  border-radius: 10px;
+.search-row input {
   border: 1px solid var(--line);
-  background: #fffdf8;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 0.82rem 0.9rem;
+  font-size: 1.02rem;
 }
 
-.grid {
-  margin-top: 1.2rem;
+.search-row button {
+  border: 0;
+  color: #fff;
+  background: var(--cta);
+  font-size: 1.02rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.feed {
+  width: 100%;
+  margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1rem;
+  gap: 0.85rem;
 }
 
-.card {
+.offer-card {
+  display: grid;
+  grid-template-columns: 215px 1fr auto;
+  align-items: start;
+  gap: 1.25rem;
   border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 1rem;
-  background: var(--card);
-  box-shadow: 0 8px 25px rgba(70, 38, 4, 0.08);
+  border-radius: 2px;
+  padding: 1.15rem;
+  background: var(--surface-soft);
 }
 
-.card h2 {
+.product-image {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: #fff;
+  object-fit: contain;
+}
+
+.offer-body {
+  min-width: 0;
+}
+
+.offer-body h2 {
   margin: 0;
-  font-size: 1rem;
-  line-height: 1.35;
-}
-
-.shop {
-  margin: 0.5rem 0;
-  color: var(--muted);
+  color: #445063;
+  font-size: clamp(1.2rem, 2.2vw, 2.15rem);
+  line-height: 1.2;
+  font-weight: 400;
 }
 
 .price {
-  margin: 0.2rem 0;
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: var(--accent);
+  margin: 0.65rem 0 0;
+  color: #808998;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 300;
 }
 
-.meta {
-  margin: 0.2rem 0;
-  font-size: 0.9rem;
+.summary {
+  margin: 0.4rem 0 0;
+  color: #8f96a2;
+  font-size: clamp(1rem, 1.8vw, 1.6rem);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .links {
-  margin-top: 0.8rem;
+  margin-top: 1rem;
   display: flex;
-  gap: 0.7rem;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.meta-link {
+  color: #1a76bf;
+  font-size: 0.95rem;
 }
 
 .links a {
+  border: 1px solid #5d9bd3;
+  border-radius: 3px;
+  padding: 0.35rem 0.65rem;
+  color: #1a76bf;
   text-decoration: none;
-  color: #fff;
-  background: linear-gradient(90deg, #b64000, #df5d00);
-  border-radius: 999px;
-  padding: 0.35rem 0.8rem;
-  font-size: 0.86rem;
+  font-size: 0.95rem;
+}
+
+.offer-meta {
+  width: 110px;
+  display: grid;
+  justify-items: center;
+  gap: 0.42rem;
+  padding-top: 0.4rem;
+}
+
+.dot {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--dot);
+  box-shadow: inset 0 0 0 1px #cde675;
+}
+
+.offer-meta small {
+  font-size: 0.95rem;
+  color: #4f5968;
 }
 
 .status {
-  margin-top: 1.5rem;
+  width: 100%;
+  margin: 1rem auto 0;
   color: var(--muted);
 }
 
@@ -134,10 +230,49 @@ body {
 
 @media (max-width: 680px) {
   .page {
-    margin-top: 1rem;
+    margin-top: 0;
   }
 
-  .hero {
-    border-radius: 16px;
+  .brand-row,
+  .tabs,
+  .content {
+    width: 95vw;
+  }
+
+  .tabs {
+    overflow-x: auto;
+    gap: 1rem;
+    white-space: nowrap;
+  }
+
+  .search-row {
+    grid-template-columns: 1fr;
+  }
+
+  .offer-card {
+    grid-template-columns: 110px 1fr;
+    align-items: start;
+    gap: 0.85rem;
+  }
+
+  .product-image {
+    width: 110px;
+  }
+
+  .offer-meta {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-items: start;
+    grid-template-columns: auto auto;
+    display: grid;
+    align-items: center;
+  }
+
+  .summary {
+    white-space: normal;
+  }
+
+  .links {
+    flex-wrap: wrap;
   }
 }

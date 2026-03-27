@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 type OfferItem = {
   itemId: string;
   itemName: string;
+  image?: string | null;
   price: number | null;
   priceRaw: string;
   sales: string;
@@ -35,6 +36,11 @@ function currency(value: number | null, fallback: string) {
   }).format(value);
 }
 
+function teaserText(item: OfferItem) {
+  const commission = currency(item.commission, item.commissionRaw);
+  return `${item.shopName} com ${item.sales} vendas e comissão de ${commission}.`;
+}
+
 export default function Home() {
   const [offersFile, setOffersFile] = useState<OffersFile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,7 +52,7 @@ export default function Home() {
         setLoading(true);
         setError("");
 
-        const offersUrl = `${process.env.NEXT_PUBLIC_PROCESSED_BUCKET_URL}/data/processed/example.json`;
+        const offersUrl = `${process.env.NEXT_PUBLIC_PROCESSED_BUCKET_URL}/data/catalog/index.json`;
         const response = await fetch(offersUrl, { cache: "no-store" });
         if (!response.ok) {
           throw new Error(`Could not load offers: ${response.status}`);
@@ -76,40 +82,64 @@ export default function Home() {
 
   return (
     <main className="page">
-      <section className="hero">
-        <p className="eyebrow">Weekly Offers</p>
-        <h1>CSV-powered deals catalog</h1>
-        <p>
-          Files uploaded to S3 are transformed by Lambda to JSON and rendered here from CloudFront.
-        </p>
-      </section>
+      <header className="shell-header">
+        <div className="brand-row">
+          <h1 className="brand">Achadinhos do Papai</h1>
+          <div className="header-actions" aria-hidden="true">
+            {/* <span className="icon-btn">+</span>
+            <span className="icon-btn">◉</span> */}
+          </div>
+        </div>
+        <nav className="tabs" aria-label="Sections">
+          {/* <a href="#" className="tab active">
+            Promoções <span className="badge">10</span>
+          </a> */}
+          
+        </nav>
+      </header>
 
-      {loading && <p className="status">Loading catalog...</p>}
-      {error && <p className="status error">{error}</p>}
-
-      {!loading && !error && offersFile && (
-        <section className="grid">
-          {sortedItems.map((item) => (
-            <article key={item.itemId} className="card">
-              <h2>{item.itemName}</h2>
-              <p className="shop">{item.shopName}</p>
-              <p className="price">{currency(item.price, item.priceRaw)}</p>
-              <p className="meta">Sales: {item.sales}</p>
-              <p className="meta">
-                Commission: {currency(item.commission, item.commissionRaw)} ({item.commissionRateRaw})
-              </p>
-              <div className="links">
-                <a href={item.productLink} target="_blank" rel="noreferrer">
-                  Product
-                </a>
-                <a href={item.offerLink} target="_blank" rel="noreferrer">
-                  Offer
-                </a>
-              </div>
-            </article>
-          ))}
+      <div className="content">
+        <section className="search-row">
+          <input type="text" placeholder="Pesquisar em Promoções" aria-label="Pesquisar em promoções" />
+          <button type="button">Buscar</button>
         </section>
-      )}
+
+        {loading && <p className="status">Loading catalog...</p>}
+        {error && <p className="status error">{error}</p>}
+
+        {!loading && !error && offersFile && (
+          <section className="feed">
+            {sortedItems.map((item, index) => (
+              <article key={item.itemId} className="offer-card">
+                <img
+                  className="product-image"
+                  src={item.image || "https://placehold.co/120x120?text=Sem+imagem"}
+                  alt={item.itemName}
+                  loading="lazy"
+                />
+                <div className="offer-body">
+                  <h2>{item.itemName}</h2>
+                  <p className="price">{currency(item.price, item.priceRaw)}</p>
+                  <p className="summary">{teaserText(item)}</p>
+                  <div className="links">
+                    <span className="meta-link">{item.sales} comentários</span>
+                    <a href={item.offerLink} target="_blank" rel="noreferrer">
+                      Ir para oferta
+                    </a>
+                    <a href={item.productLink} target="_blank" rel="noreferrer">
+                      Ir para produto
+                    </a>
+                  </div>
+                </div>
+                <div className="offer-meta" aria-label="post time">
+                  <span className="dot" />
+                  <small>{index + 2} minutos atrás</small>
+                </div>
+              </article>
+            ))}
+          </section>
+        )}
+      </div>
     </main>
   );
 }
