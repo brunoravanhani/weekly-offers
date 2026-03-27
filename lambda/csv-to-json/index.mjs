@@ -69,6 +69,16 @@ function parsePercentage(raw) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function buildFileTimestamp(date = new Date()) {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  const hours = String(date.getUTCHours()).padStart(2, "0");
+  const minutes = String(date.getUTCMinutes()).padStart(2, "0");
+  const seconds = String(date.getUTCSeconds()).padStart(2, "0");
+  return `${year}${month}${day}-${hours}${minutes}${seconds}`;
+}
+
 function mapRow(headers, row) {
   const item = {};
   headers.forEach((header, index) => {
@@ -87,7 +97,8 @@ function mapRow(headers, row) {
     commission: parseCurrencyNumber(item["Commission"]),
     commissionRaw: item["Commission"],
     productLink: item["Product Link"],
-    offerLink: item["Offer Link"]
+    offerLink: item["Offer Link"],
+    image: item["Image"]
   };
 }
 
@@ -140,8 +151,8 @@ export async function handler(event) {
     const headers = parseCsvLine(rows[0]);
     const records = rows.slice(1).map((line) => mapRow(headers, parseCsvLine(line)));
 
-    const baseFileName = inputKey.split("/").pop().replace(/\.csv$/i, "");
-    const outputKey = `${outputPrefix}/${baseFileName}.json`;
+    const fileTimestamp = buildFileTimestamp();
+    const outputKey = `${outputPrefix}/${fileTimestamp}.json`;
 
     await s3.send(
       new PutObjectCommand({
