@@ -1,5 +1,6 @@
 import {
   GetObjectCommand,
+  ListObjectsV2Command,
   PutObjectCommand,
   S3Client
 } from "@aws-sdk/client-s3";
@@ -9,6 +10,7 @@ const s3 = new S3Client({});
 const processedBucket = process.env.PROCESSED_BUCKET;
 const outputPrefix = process.env.OUTPUT_PREFIX || "data/processed";
 const catalogKey = process.env.CATALOG_KEY || "data/catalog/index.json";
+const catalogLookbackDays = Number(process.env.CATALOG_LOOKBACK_DAYS || "7");
 
 function streamToString(stream) {
   return new Promise((resolve, reject) => {
@@ -79,6 +81,35 @@ function buildFileTimestamp(date = new Date()) {
   return `${year}${month}${day}-${hours}${minutes}${seconds}`;
 }
 
+function normalizePrefix(prefix) {
+  return prefix.replace(/^\/+/, "").replace(/\/+$/, "");
+}
+
+function parseTimestampFromProcessedKey(key, processedPrefix) {
+  const normalizedPrefix = normalizePrefix(processedPrefix);
+  const expectedPrefix = `${normalizedPrefix}/`;
+
+  if (!key.startsWith(expectedPrefix)) {
+    return null;
+  }
+
+  const fileName = key.slice(expectedPrefix.length);
+  const match = fileName.match(/^(\d{8})-(\d{6})\.json$/);
+  if (!match) {
+    return null;
+  }
+
+  const [, datePart, timePart] = match;
+  const year = Number(datePart.slice(0, 4));
+  const month = Number(datePart.slice(4, 6));
+  const day = Number(datePart.slice(6, 8));
+  const hours = Number(timePart.slice(0, 2));
+  const minutes = Number(timePart.slice(2, 4));
+  const seconds = Number(timePart.slice(4, 6));
+
+  return new Date(Date.UTC(year, month - 1, day, hours, minutes, seconds));
+}
+
 function mapRow(headers, row) {
   const item = {};
   headers.forEach((header, index) => {
@@ -122,6 +153,102 @@ async function readJsonObject(bucket, key) {
     }
     throw error;
   }
+}
+
+async function listProcessedJsonObjects(bucket, processedPrefix) {
+  const normalizedPrefix = `${normalizePrefix(processedPrefix)}/`;
+  const objects = [];
+  let continuationToken;
+
+  do {
+    const response = await s3.send(
+      new ListObjectsV2Command({
+        Bucket: bucket,
+        Prefix: normalizedPrefix,
+        ContinuationToken: continuationToken
+      })
+    );
+
+    for (const item of response.Contents || []) {
+      if (item.Key && item.Key.endsWith(".json")) {
+        objects.push({
+          key: item.Key,
+          lastModified: item.LastModified ?? null
+        });
+      }
+    }
+
+    continuationToken = response.IsTruncated ? response.NextContinuationToken : undefined;
+  } while (continuationToken);
+
+  return objects;
+}
+
+async function rebuildCatalogIndex(bucket) {
+  const now = new Date();
+  const lookbackDays = Number.isFinite(catalogLookbackDays) && catalogLookbackDays > 0 ? catalogLookbackDays : 7;
+  const cutoffDate = new Date(now.getTime() - lookbackDays * 24 * 60 * 60 * 1000);
+
+  const processedObjects = await listProcessedJsonObjects(bucket, outputPrefix);
+
+  const filteredObjects = processedObjects
+    .map((objectInfo) => {
+      const fileDate = parseTimestampFromProcessedKey(objectInfo.key, outputPrefix);
+      return {
+        ...objectInfo,
+        fileDate
+      };
+    })
+    .filter((objectInfo) => objectInfo.fileDate && objectInfo.fileDate >= cutoffDate)
+    .sort((a, b) => b.fileDate.getTime() - a.fileDate.getTime());
+
+  const processedFiles = [];
+  const catalogItems = [];
+
+  for (const objectInfo of filteredObjects) {
+    const parsed = await readJsonObject(bucket, objectInfo.key);
+    if (!parsed || !Array.isArray(parsed.items)) {
+      continue;
+    }
+
+    const source = parsed.source || { bucket, key: objectInfo.key };
+    const generatedAt = parsed.generatedAt || objectInfo.fileDate.toISOString();
+    const itemCount = Number.isFinite(parsed.itemCount) ? parsed.itemCount : parsed.items.length;
+
+    processedFiles.push({
+      jsonKey: objectInfo.key,
+      source,
+      generatedAt,
+      itemCount
+    });
+
+    for (const item of parsed.items) {
+      catalogItems.push({
+        ...item,
+        sourceJsonKey: objectInfo.key,
+        sourceGeneratedAt: generatedAt
+      });
+    }
+  }
+
+  const payload = {
+    updatedAt: now.toISOString(),
+    lookbackDays,
+    cutoffAt: cutoffDate.toISOString(),
+    fileCount: processedFiles.length,
+    itemCount: catalogItems.length,
+    files: processedFiles,
+    items: catalogItems
+  };
+
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: catalogKey,
+      Body: JSON.stringify(payload, null, 2),
+      ContentType: "application/json"
+    })
+  );
 }
 
 export async function handler(event) {
@@ -175,33 +302,7 @@ export async function handler(event) {
       })
     );
 
-    const existingCatalog = (await readJsonObject(processedBucket, catalogKey)) || {
-      updatedAt: null,
-      files: []
-    };
-
-    const nowIso = new Date().toISOString();
-    const entry = {
-      sourceKey: inputKey,
-      jsonKey: outputKey,
-      itemCount: records.length,
-      updatedAt: nowIso
-    };
-
-    const withoutCurrent = existingCatalog.files.filter((file) => file.sourceKey !== inputKey);
-    const updatedCatalog = {
-      updatedAt: nowIso,
-      files: [entry, ...withoutCurrent].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-    };
-
-    await s3.send(
-      new PutObjectCommand({
-        Bucket: processedBucket,
-        Key: catalogKey,
-        Body: JSON.stringify(updatedCatalog, null, 2),
-        ContentType: "application/json"
-      })
-    );
+    await rebuildCatalogIndex(processedBucket);
 
     console.log(`Processed ${inputKey} into ${processedBucket}/${outputKey}`);
   }
