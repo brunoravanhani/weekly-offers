@@ -36,10 +36,10 @@ resource "aws_s3_bucket_versioning" "processed_data" {
 resource "aws_s3_bucket_public_access_block" "processed_data" {
   bucket = aws_s3_bucket.processed_data.id
 
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
 }
 
 resource "aws_s3_bucket" "catalog_site" {
@@ -423,14 +423,8 @@ data "aws_iam_policy_document" "processed_data_bucket_policy" {
     resources = ["${aws_s3_bucket.processed_data.arn}/*"]
 
     principals {
-      type        = "Service"
-      identifiers = ["cloudfront.amazonaws.com"]
-    }
-
-    condition {
-      test     = "StringEquals"
-      variable = "AWS:SourceArn"
-      values   = [aws_cloudfront_distribution.catalog.arn]
+      type        = "*"
+      identifiers = ["*"]
     }
   }
 }
