@@ -39,10 +39,13 @@ Add these repository secrets:
 - `TF_STATE_BUCKET`
 - `CATALOG_SITE_BUCKET_NAME`
 - `CLOUDFRONT_DISTRIBUTION_ID`
+- `PROCESSED_BUCKET_URL`
+- `NEXT_PUBLIC_SITE_URL` (optional if set as repository variable)
 
 Add this repository variable:
 
 - `AWS_REGION`
+- `NEXT_PUBLIC_SITE_URL` (recommended)
 
 `TF_STATE_BUCKET` must already exist and be writable by the GitHub OIDC role. The Terraform workflows store state at `weekly-offers/<environment>/terraform.tfstate` inside that bucket.
 

@@ -110,7 +110,7 @@ function parseTimestampFromProcessedKey(key, processedPrefix) {
   return new Date(Date.UTC(year, month - 1, day, hours, minutes, seconds));
 }
 
-function mapRow(headers, row) {
+function mapRow(headers, row, createdAt) {
   const item = {};
   headers.forEach((header, index) => {
     item[header] = row[index] ?? "";
@@ -129,7 +129,8 @@ function mapRow(headers, row) {
     commissionRaw: item["Commission"],
     productLink: item["Product Link"],
     offerLink: item["Offer Link"],
-    image: item["Image"]
+    image: item["Image"],
+    createdAt
   };
 }
 
@@ -275,7 +276,8 @@ export async function handler(event) {
     }
 
     const headers = parseCsvLine(rows[0]);
-    const records = rows.slice(1).map((line) => mapRow(headers, parseCsvLine(line)));
+    const createdAt = new Date().toISOString();
+    const records = rows.slice(1).map((line) => mapRow(headers, parseCsvLine(line), createdAt));
 
     const fileTimestamp = buildFileTimestamp();
     const outputKey = `${outputPrefix}/${fileTimestamp}.json`;

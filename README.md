@@ -186,6 +186,7 @@ Workflows:
 Repository variables:
 
 - `AWS_REGION`
+- `NEXT_PUBLIC_SITE_URL` (recommended)
 
 Repository secrets:
 
@@ -193,6 +194,8 @@ Repository secrets:
 - `TF_STATE_BUCKET`
 - `CATALOG_SITE_BUCKET_NAME`
 - `CLOUDFRONT_DISTRIBUTION_ID`
+- `PROCESSED_BUCKET_URL`
+- `NEXT_PUBLIC_SITE_URL` (optional if set as repository variable)
 
 `AWS_ROLE_TO_ASSUME` should be an IAM role configured for GitHub OIDC with permissions for Terraform resources, the Terraform state bucket, S3 sync, and CloudFront invalidation.
 

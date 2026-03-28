@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 type OfferItem = {
   itemId: string;
   itemName: string;
+  createdAt?: string;
   image?: string | null;
   price: number | null;
   priceRaw: string;
@@ -46,6 +47,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://example.com";
 
   useEffect(() => {
     async function loadOffers() {
@@ -85,16 +87,70 @@ export default function Home() {
       );
     }
 
-    // Sort by price
+    // Sort by newest first
     return filtered.sort((a, b) => {
-      const priceA = a.price ?? 0;
-      const priceB = b.price ?? 0;
-      return priceA - priceB;
+      const createdAtA = a.createdAt ? Date.parse(a.createdAt) : 0;
+      const createdAtB = b.createdAt ? Date.parse(b.createdAt) : 0;
+
+      if (createdAtA !== createdAtB) {
+        return createdAtB - createdAtA;
+      }
+
+      // Keep deterministic ordering when timestamps match or are missing.
+      return (a.itemName || "").localeCompare(b.itemName || "", "pt-BR");
     });
   }, [offersFile, searchQuery]);
 
+  const structuredData = useMemo(() => {
+    const itemListElement = sortedItems.slice(0, 20).map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      item: {
+        "@type": "Product",
+        name: item.itemName,
+        image: item.image || undefined,
+        brand: {
+          "@type": "Brand",
+          name: item.shopName
+        },
+        offers: {
+          "@type": "Offer",
+          priceCurrency: "BRL",
+          price: item.price ?? undefined,
+          url: item.offerLink,
+          seller: {
+            "@type": "Organization",
+            name: item.shopName
+          }
+        }
+      }
+    }));
+
+    return {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          name: "Achadinhos do Papai",
+          url: siteUrl,
+          inLanguage: "pt-BR"
+        },
+        {
+          "@type": "ItemList",
+          name: "Lista de ofertas",
+          numberOfItems: sortedItems.length,
+          itemListElement
+        }
+      ]
+    };
+  }, [siteUrl, sortedItems]);
+
   return (
     <main className="page">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       <header className="shell-header">
         <div className="brand-row">
           <h1 className="brand">Achadinhos do Papai</h1>
@@ -109,6 +165,9 @@ export default function Home() {
           </a> */}
           
         </nav>
+        <p className="status">
+          Catálogo de promoções com busca por nome do produto e loja.
+        </p>
       </header>
 
       <div className="content">
@@ -153,7 +212,12 @@ export default function Home() {
                   <p className="price">{currency(item.price, item.priceRaw)}</p>
                   {/* <p className="summary">{teaserText(item)}</p> */}
                   <div className="links">
-                    <a href={item.offerLink} target="_blank" rel="noreferrer">
+                    <a
+                      href={item.offerLink}
+                      target="_blank"
+                      rel="noopener noreferrer nofollow sponsored"
+                      aria-label={`Abrir oferta de ${item.itemName}. ${teaserText(item)}`}
+                    >
                       Ir para oferta
                     </a>
                   </div>

@@ -49,6 +49,7 @@ jobs:
         run: |
           cat > .env.local << EOF
           NEXT_PUBLIC_PROCESSED_BUCKET_URL=${{ secrets.PROCESSED_BUCKET_URL }}
+          NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL || secrets.NEXT_PUBLIC_SITE_URL }}
           EOF
 
       - name: Build static site
