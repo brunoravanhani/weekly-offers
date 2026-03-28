@@ -45,6 +45,7 @@ export default function Home() {
   const [offersFile, setOffersFile] = useState<OffersFile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
     async function loadOffers() {
@@ -73,12 +74,24 @@ export default function Home() {
   const sortedItems = useMemo(() => {
     if (!offersFile) return [];
 
-    return [...offersFile.items].sort((a, b) => {
+    let filtered = [...offersFile.items];
+    
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const lowerQuery = searchQuery.toLowerCase();
+      filtered = filtered.filter(item =>
+        item.itemName.toLowerCase().includes(lowerQuery) ||
+        item.shopName.toLowerCase().includes(lowerQuery)
+      );
+    }
+
+    // Sort by price
+    return filtered.sort((a, b) => {
       const priceA = a.price ?? 0;
       const priceB = b.price ?? 0;
       return priceA - priceB;
     });
-  }, [offersFile]);
+  }, [offersFile, searchQuery]);
 
   return (
     <main className="page">
@@ -100,15 +113,33 @@ export default function Home() {
 
       <div className="content">
         <section className="search-row">
-          <input type="text" placeholder="Pesquisar em Promoções" aria-label="Pesquisar em promoções" />
-          <button type="button">Buscar</button>
+          <input 
+            type="text" 
+            placeholder="Pesquisar em Promoções" 
+            aria-label="Pesquisar em promoções"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+          />
+          <button 
+            type="button"
+            onClick={() => setSearchQuery("")}
+          >
+            Buscar
+          </button>
         </section>
 
         {loading && <p className="status">Loading catalog...</p>}
         {error && <p className="status error">{error}</p>}
 
         {!loading && !error && offersFile && (
-          <section className="feed">
+          <>
+            {searchQuery && (
+              <p className="status">
+                Encontrados {sortedItems.length} produto{sortedItems.length !== 1 ? 's' : ''} para "{searchQuery}"
+              </p>
+            )}
+            <section className="feed">
             {sortedItems.map((item, index) => (
               <article key={item.itemId} className="offer-card">
                 <img
@@ -120,24 +151,17 @@ export default function Home() {
                 <div className="offer-body">
                   <h2>{item.itemName}</h2>
                   <p className="price">{currency(item.price, item.priceRaw)}</p>
-                  <p className="summary">{teaserText(item)}</p>
+                  {/* <p className="summary">{teaserText(item)}</p> */}
                   <div className="links">
-                    <span className="meta-link">{item.sales} comentários</span>
                     <a href={item.offerLink} target="_blank" rel="noreferrer">
                       Ir para oferta
                     </a>
-                    <a href={item.productLink} target="_blank" rel="noreferrer">
-                      Ir para produto
-                    </a>
                   </div>
-                </div>
-                <div className="offer-meta" aria-label="post time">
-                  <span className="dot" />
-                  <small>{index + 2} minutos atrás</small>
                 </div>
               </article>
             ))}
-          </section>
+            </section>
+          </>
         )}
       </div>
     </main>
