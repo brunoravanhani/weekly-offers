@@ -165,9 +165,6 @@ export default function Home() {
           </a> */}
           
         </nav>
-        <p className="status">
-          Catálogo de promoções com busca por nome do produto e loja.
-        </p>
       </header>
 
       <div className="content">
