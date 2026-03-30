@@ -32,9 +32,12 @@ AWS Services:
   - Cloudfront
   - Lambda
 
-
+![Architecture Diagram](https://github.com/brunoravanhani/weekly-offers/blob/main/architecture.png?raw=true)
 
 ## 3) Other files
+
+- [DEPLOY_INFRA.md](https://github.com/brunoravanhani/weekly-offers/blob/main/DEPLOY_INFRA.md)
+- [QUICK_SETUP.md](https://github.com/brunoravanhani/weekly-offers/blob/main/QUICK_SETUP.md)
 
 
 ## 4) CI/CD Workflows (GitHub Actions)
