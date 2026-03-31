@@ -44,16 +44,10 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Create environment file
-        working-directory: web/catalog
-        run: |
-          cat > .env.local << EOF
-          NEXT_PUBLIC_PROCESSED_BUCKET_URL=${{ secrets.PROCESSED_BUCKET_URL }}
-          NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL || secrets.NEXT_PUBLIC_SITE_URL }}
-          EOF
-
       - name: Build static site
         working-directory: web/catalog
+        env:
+          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || secrets.NEXT_PUBLIC_SITE_URL }}
         run: npm run build
 
       - name: Sync to S3

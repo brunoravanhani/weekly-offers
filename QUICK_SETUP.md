@@ -39,7 +39,6 @@ Add these repository secrets:
 - `TF_STATE_BUCKET`
 - `CATALOG_SITE_BUCKET_NAME`
 - `CLOUDFRONT_DISTRIBUTION_ID`
-- `PROCESSED_BUCKET_URL`
 - `NEXT_PUBLIC_SITE_URL` (optional if set as repository variable)
 
 Add this repository variable:

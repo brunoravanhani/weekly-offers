@@ -20,14 +20,15 @@ type OfferItem = {
 };
 
 type OffersFile = {
-  source: {
-    bucket: string;
-    key: string;
-  };
-  generatedAt: string;
+  updatedAt: string;
+  lookbackDays: number;
+  cutoffAt: string;
+  fileCount: number;
   itemCount: number;
   items: OfferItem[];
 };
+
+const catalogIndexPath = "/data/catalog/index.json";
 
 function currency(value: number | null, fallback: string) {
   if (value === null) return fallback;
@@ -55,8 +56,7 @@ export default function Home() {
         setLoading(true);
         setError("");
 
-        const offersUrl = `${process.env.NEXT_PUBLIC_PROCESSED_BUCKET_URL}/data/catalog/index.json`;
-        const response = await fetch(offersUrl, { cache: "no-store" });
+        const response = await fetch(catalogIndexPath, { cache: "no-store" });
         if (!response.ok) {
           throw new Error(`Could not load offers: ${response.status}`);
         }
